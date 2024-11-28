@@ -1,0 +1,70 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+	<PropertyGroup>
+		<TargetFramework>net472</TargetFramework>
+		<OutputType>Library</OutputType>
+		<GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+		<LangVersion>latest</LangVersion>
+		<Deterministic>true</Deterministic>
+		<ImplicitUsings>true</ImplicitUsings>
+		<DebugType>portable</DebugType>
+		<RootNamespace>HKModTemplate</RootNamespace>
+		<GameDir>C:/Program Files (x86)/Steam/steamapps/common/Hollow Knight/hollow_knight_Data/Managed</GameDir>
+	</PropertyGroup>
+	<ItemGroup>
+		<Reference Include="Assembly-CSharp">
+			<HintPath>$(GameDir)/Assembly-CSharp.dll</HintPath>
+		</Reference>
+		<Reference Include="UnityEngine">
+			<HintPath>$(GameDir)/UnityEngine.dll</HintPath>
+		</Reference>
+		<Reference Include="UnityEngine.AudioModule">
+			<HintPath>$(GameDir)/UnityEngine.AudioModule.dll</HintPath>
+		</Reference>
+		<Reference Include="UnityEngine.CoreModule">
+			<HintPath>$(GameDir)/UnityEngine.CoreModule.dll</HintPath>
+		</Reference>
+		<Reference Include="UnityEngine.ImageConversionModule">
+			<HintPath>$(GameDir)/UnityEngine.ImageConversionModule.dll</HintPath>
+		</Reference>
+		<Reference Include="UnityEngine.InputLegacyModule">
+			<HintPath>$(GameDir)/UnityEngine.InputLegacyModule.dll</HintPath>
+		</Reference>
+		<Reference Include="UnityEngine.ParticleSystemModule">
+			<HintPath>$(GameDir)/UnityEngine.ParticleSystemModule.dll</HintPath>
+		</Reference>
+		<Reference Include="UnityEngine.Physics2DModule">
+			<HintPath>$(GameDir)/UnityEngine.Physics2DModule.dll</HintPath>
+		</Reference>
+		<Reference Include="UnityEngine.UI">
+			<HintPath>$(GameDir)/UnityEngine.UI.dll</HintPath>
+		</Reference>
+		<Reference Include="PlayMaker">
+			<HintPath>$(GameDir)/PlayMaker.dll</HintPath>
+		</Reference>
+		<Reference Include="MMHOOK_Assembly-CSharp">
+			<HintPath>$(GameDir)/MMHOOK_Assembly-CSharp.dll</HintPath>
+		</Reference>
+		<Reference Include="MMHOOK_PlayMaker">
+			<HintPath>$(GameDir)/MMHOOK_PlayMaker.dll</HintPath>
+		</Reference>
+		<Reference Include="MonoMod.Utils">
+			<HintPath>$(GameDir)/MonoMod.Utils.dll</HintPath>
+		</Reference>
+		<Reference Include="Satchel">
+			<HintPath>$(GameDir)/Mods/Satchel/Satchel.dll</HintPath>
+		</Reference>
+	</ItemGroup>
+	<Target Name="Installation" AfterTargets="PostBuildEvent">
+		<RemoveDir Condition="Exists('$(GameDir)/Mods/$(TargetName)')" Directories="$(GameDir)/Mods/$(TargetName)" />
+		<MakeDir Directories="$(GameDir)/Mods/$(TargetName)" />
+		<Copy SourceFiles="$(TargetDir)/$(TargetName).dll;$(TargetDir)/$(TargetName).pdb" DestinationFolder="$(GameDir)/Mods/$(TargetName)" />
+		<MakeDir Directories="$(GameDir)/Mods/$(TargetName)/Archive" />
+		<Copy SourceFiles="$(TargetDir)/$(TargetName).dll;$(TargetDir)/$(TargetName).pdb;" DestinationFolder="$(GameDir)/Mods/$(TargetName)/Archive" />
+		<ZipDirectory SourceDirectory="$(GameDir)/Mods/$(TargetName)/Archive" DestinationFile="$(GameDir)/Mods/$(TargetName)/$(TargetName).zip" />
+		<RemoveDir Directories="$(GameDir)/Mods/$(TargetName)/Archive" />
+		<GetFileHash Files="$(GameDir)/Mods/$(TargetName)/$(TargetName).zip" Algorithm="SHA256">
+			<Output TaskParameter="Items" ItemName="SHA256" />
+		</GetFileHash>
+		<WriteLinesToFile File="$(GameDir)/Mods/$(TargetName)/SHA256.txt" Lines="@(SHA256->'%(FileHash)')" Overwrite="true" Encoding="UTF-8" />
+	</Target>
+</Project>
