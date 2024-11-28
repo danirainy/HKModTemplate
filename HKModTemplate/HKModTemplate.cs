@@ -24,7 +24,7 @@ public class HKModTemplate : Mod, IGlobalSettings<Settings>, IMenuMod
     public HKModTemplate() : base("HKModTemplate")
     {
     }
-    public override string GetVersion() => "1.0.0.0";
+    public override string GetVersion() => "1.0.0.1";
 
 
     /* 
@@ -55,7 +55,7 @@ public class HKModTemplate : Mod, IGlobalSettings<Settings>, IMenuMod
                 // 在游戏运行时看到对应的log。
                 Log("Updating Zote FSM.");
                 // 跳劈启动状态
-                var stomp = self.Fsm.GetState("Stomp");
+                var stomp = self.GetState("Stomp");
                 // 把action插入到index 0最前面，以保证我们的跳转最先触发。
                 stomp.InsertCustomAction(() =>
                 {
