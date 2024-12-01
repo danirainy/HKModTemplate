@@ -65,8 +65,8 @@ public class HKModTemplate : Mod, IGlobalSettings<Settings>, IMenuMod
             {
                 void updateState(FsmState state)
                 {
-                    state.RemoveAction(3);
                     state.RemoveAction(7);
+                    state.RemoveAction(3);
                     state.AddCustomAction(() =>
                     {
                         // 实例化光球
