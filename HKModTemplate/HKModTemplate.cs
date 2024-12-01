@@ -3,6 +3,8 @@
  * 作者：近环（https://space.bilibili.com/1224243724）
  */
 
+using HutongGames.PlayMaker;
+using HutongGames.PlayMaker.Actions;
 using Modding;
 using Satchel;
 using UnityEngine;
@@ -32,13 +34,22 @@ public class HKModTemplate : Mod, IGlobalSettings<Settings>, IMenuMod
      */
     public override List<(string, string)> GetPreloadNames()
     {
-        // 预加载你想要的攻击特效或者敌人，具体请阅读教程。
-        return null;
+        return [
+            ("GG_Radiance", "Boss Control/Absolute Radiance")
+        ];
     }
+    // 光球模版
+    private GameObject orbTemplate;
     public override void Initialize(Dictionary<string, Dictionary<string, GameObject>> preloadedObjects)
     {
         // 添加需要使用的hooks
         On.PlayMakerFSM.OnEnable += PlayMakerFSM_OnEnable;
+
+        var radiance = preloadedObjects["GG_Radiance"]["Boss Control/Absolute Radiance"];
+        var fsm = radiance.LocateMyFSM("Attack Commands");
+        orbTemplate = fsm.GetAction<SpawnObjectFromGlobalPool>("Spawn Fireball", 1).gameObject.Value;
+        GameObject.Destroy(orbTemplate.GetComponent<PersistentBoolItem>());
+        GameObject.Destroy(orbTemplate.GetComponent<ConstrainPosition>());
     }
 
     /* 
@@ -52,22 +63,26 @@ public class HKModTemplate : Mod, IGlobalSettings<Settings>, IMenuMod
             // 仅在当前场景是左特场景，对象是左特，且FSM的名字为Control时触发。关于如何查看FSM信息，请阅读教程。
             if (self.gameObject.scene.name == "GG_Grey_Prince_Zote" && self.gameObject.name == "Grey Prince" && self.FsmName == "Control")
             {
-                // 在游戏运行时看到对应的log。
-                Log("Updating Zote FSM.");
-                // 跳劈启动状态
-                var stomp = self.GetState("Stomp");
-                // 把action插入到index 0最前面，以保证我们的跳转最先触发。
-                stomp.InsertCustomAction(() =>
+                void updateState(FsmState state)
                 {
-                    // 以60%的概率触发再次假动作
-                    var again = UnityEngine.Random.Range(0.0f, 1.0f) < 0.6;
-                    if (again)
+                    state.RemoveAction(3);
+                    state.RemoveAction(7);
+                    state.AddCustomAction(() =>
                     {
-                        // 跳转到假动作开始的状态
-                        self.Fsm.SetState("Shift Dir");
-                    }
-                }, 0);
-                Log("Updated Zote FSM.");
+                        // 实例化光球
+                        var orb = GameObject.Instantiate(orbTemplate);
+                        // 位置
+                        orb.transform.position = self.FsmVariables.GetFsmVector3("Spawn Pos").Value;
+                        // 速度
+                        var vX = self.FsmVariables.GetFsmFloat("X Vel").Value;
+                        var vY = self.FsmVariables.GetFsmFloat("Y Vel").Value;
+                        orb.GetComponent<Rigidbody2D>().velocity = new(vX, vY);
+                        // 激活
+                        orb.LocateMyFSM("Orb Control").SendEvent("FIRE");
+                    });
+                }
+                updateState(self.GetState("Spit L"));
+                updateState(self.GetState("Spit R"));
             }
         }
         // 如果不是完全重写该函数，只是增量改动，记得调用原函数。
